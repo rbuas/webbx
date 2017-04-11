@@ -2,10 +2,10 @@ module.exports = HeartRestTest;
 
 var express = require("express");
 var RestTest = require("webdrone").RestTest;
+var WapModel = require("memodb").WapModel;
 
 var Brain = require("./brain");
 var Heart = require("./heart");
-var WapModel = require(ROOT_DIR + "/models/wap");
 
 /////////////
 // TESTCLASS : HeartRestTest
