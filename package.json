@@ -20,6 +20,7 @@
     "express-session": "^1.13.0",
     "handlebars": "^4.0.5",
     "jsext": "^1.0.0",
+    "mediamemo": "0.0.1",
     "memocache": "^1.0.2",
     "memodb": "0.0.2"
   },

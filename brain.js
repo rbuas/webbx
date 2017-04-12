@@ -12,7 +12,7 @@ var jsext = require("jsext");
 var log = require("jsext").Log;
 var MemoCache = require("memocache");
 var MemoDB = require("memodb");
-var MediaDB = require(ROOT_DIR + "/rocks/mediaext/media");
+var MediaDB = require("mediamemo");
 
 var DNA = require("./dna");
 var ViewEngine = require("./viewengine");
