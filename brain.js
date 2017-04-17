@@ -13,9 +13,9 @@ var log = require("jsext").Log;
 var MemoCache = require("memocache");
 var MemoDB = require("memodb");
 var MediaDB = require("mediamemo");
+var SkinSpider = require("skinspider");
 
 var DNA = require("./dna");
-var ViewEngine = require("./viewengine");
 
 function Brain (options) {
     var self = this;
@@ -34,19 +34,19 @@ function Brain (options) {
     self.name = self.options.name;
     log.message("BRAIN : " + (self.name || "") + " starting ...");
 
-    if(self.options.viewEngine) {
+    if(self.options.skinspider) {
         var viewDir = self.path(self.options.viewsDir);
         self.app.set("views", viewDir);
-        log.message("BRAIN : view path : ", viewDir);
-        self.app.engine(self.options.viewEngine, exphandlebars({
+        log.message("BRAIN : skinspider : ", viewDir);
+        self.app.engine(self.options.skinspider, exphandlebars({
             defaultLayout: self.options.masterSkeleton, 
             extname: "." + self.options.viewExtension, 
             partialsDir: viewDir + "/partials/",
             layoutDir: viewDir + "/layouts/"
         }));
-        self.app.set("view engine", self.options.viewEngine);
+        self.app.set("view engine", self.options.skinspider);
 
-        self.viewengine = new ViewEngine({path:viewDir, ext:self.options.viewExtension});
+        self.skinspider = new SkinSpider({path:viewDir, ext:self.options.viewExtension});
     }
 
     self.mcache = new MemoCache(self.options.mcache);
@@ -79,7 +79,7 @@ Brain.prototype.DEFAULTOPTIONS = {
     defaultSkin : "page",
     encryptkey: "secret",
     wapref:"wap",
-    viewEngine: "html",
+    skinspider: "html",
     viewExtension: "html",
     mcache : {
         maxSize:5000000,
@@ -217,7 +217,7 @@ Brain.prototype.render = function(data, skeleton, skin) {
         data.skin = skin;
 
         var viewbag = self.viewbag(data);
-        return resolve(self.viewengine.render(skin, viewbag));
+        return resolve(self.skinspider.render(skin, viewbag));
     });
 }
 
