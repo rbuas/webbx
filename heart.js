@@ -32,7 +32,8 @@ Heart.prototype.response = function(res, data, skeleton, skin, format) {
                     resolve();
                 })
                 .catch(function(error) {
-                    res.send(error);
+                    //res.send(error);
+                    res.send(data);
                     resolve();
                 });
                 break;
@@ -90,10 +91,10 @@ Heart.prototype.map = function() {
     };
 }
 
-Heart.prototype.wappage = function(wapid) {
+Heart.prototype.wappage = function(wapid, ref) {
     var self = this;
     return function(req, res) {
-        self.brain.wap(wapid)
+        self.brain.wap(wapid, ref)
         .then(function(wap) {
             var skin = req.params.skin || self.brain.options.defaultSkin;
             var skeleton = req.params.skeleton || self.brain.options.masterSkeleton;
