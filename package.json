@@ -20,10 +20,10 @@
     "express-session": "^1.13.0",
     "handlebars": "^4.0.5",
     "jsext": "^1.0.0",
-    "mediamemo": "^0.0.4",
+    "mediamemo": "^0.0.5",
     "memocache": "^1.0.2",
     "memodb": "^0.0.7",
-    "skinspider": "0.0.1"
+    "skinspider": "^0.0.1"
   },
   "devDependencies": {
     "chai": "^3.5.0",

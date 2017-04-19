@@ -12,7 +12,7 @@ var jsext = require("jsext");
 var log = require("jsext").Log;
 var MemoCache = require("memocache");
 var MemoDB = require("memodb");
-var MediaDB = require("mediamemo");
+var MediaDB = require("mediamemo").Media;
 var SkinSpider = require("skinspider");
 
 var DNA = require("./dna");
