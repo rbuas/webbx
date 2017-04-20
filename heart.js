@@ -32,8 +32,8 @@ Heart.prototype.response = function(res, data, skeleton, skin, format) {
                     resolve();
                 })
                 .catch(function(error) {
-                    //res.send(error);
-                    res.send(data);
+                    error.data = data;
+                    res.send(error);
                     resolve();
                 });
                 break;
@@ -51,9 +51,9 @@ Heart.prototype.response = function(res, data, skeleton, skin, format) {
     });
 }
 
-Heart.prototype.errorpage = function(res, errormessage) {
+Heart.prototype.errorpage = function(res, errormessage, detail) {
     var self = this;
-    return self.response(res, {errormessage:errormessage}, "master", "error", "html");
+    return self.response(res, {errormessage:errormessage, error:detail}, "master", "error", "html");
 }
 
 Heart.prototype.hello = function() {
@@ -101,7 +101,7 @@ Heart.prototype.wappage = function(wapid, ref) {
             return self.response(res, {wap:wap, session:req.session}, skeleton, skin, req.formatext || "html");
         })
         .catch(function(error) {
-            return self.errorpage(res, "WAP_NOTFOUND");
+            return self.errorpage(res, "WAP_NOTFOUND", error);
         })
     };
 }

@@ -213,11 +213,14 @@ Brain.prototype.render = function(data, skeleton, skin) {
     return new Promise(function(resolve, reject) {
         if(!skin) return reject("missing skin parameter");
 
-        data.layout = data.skeleton = skeleton;
+        data.skeleton = skeleton;
         data.skin = skin;
 
         var viewbag = self.viewbag(data);
-        return resolve(self.skinspider.render(skin, viewbag));
+        var result = self.skinspider.render(data.skeleton || data.skin, viewbag);
+        if(!result || !result.html || result.error) return reject(result);
+
+        return resolve(result.html);
     });
 }
 
