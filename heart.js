@@ -1,5 +1,6 @@
 module.exports = Heart;
 
+var moment = require("moment");
 var jsext = require("jsext");
 var log = require("jsext").Log;
 
@@ -146,7 +147,7 @@ Heart.prototype.disconnect = function() {
 Heart.prototype.resetsession = function() {
     var self = this;
     return function(req, res) {
-        var when = Date.now();
+        var when = moment().format("YYYYMMDDHHmmss");
         log.message("reset session", when);
         req.session.destroy();
         res.json({message : "SESSION_RESET"});
@@ -156,9 +157,33 @@ Heart.prototype.resetsession = function() {
 Heart.prototype.resetcache = function() {
     var self = this;
     return function(req, res) {
-        var when = Date.now();
+        var when = moment().format("YYYYMMDDHHmmss");
         log.message("reset cache", when);
-        self.mcache.reset();
+        self.brain.mcache.reset();
         res.json({message : "CACHE_RESET"});
+    };
+}
+
+Heart.prototype.resetskin = function() {
+    var self = this;
+    return function(req, res) {
+        var when = moment().format("YYYYMMDDHHmmss");
+        log.message("reset skin", when);
+        self.brain.skinspider.reset();
+        res.json({message : "SKIN_RESET"});
+    };
+}
+
+Heart.prototype.reset = function() {
+    var self = this;
+    return function(req, res) {
+        var when = moment().format("YYYYMMDDHHmmss");
+        log.message("reset skin", when);
+        self.brain.skinspider.reset();
+        log.message("reset cache", when);
+        self.brain.mcache.reset();
+        log.message("reset session", when);
+        req.session.destroy();
+        res.json({message : "SKIN_RESET|CACHE_RESET|SESSION_RESET"});
     };
 }
