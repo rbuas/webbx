@@ -22,7 +22,7 @@ function Brain (options) {
 
     self.superparams = processSuperParams(self);
     self.version = jsext.loadJsonFile("version.json") || {version:""};
-    self.options = Object.assign(self.DEFAULTOPTIONS, options, self.superparams) || {};
+    self.options = Object.assign(true, {}, self.DEFAULTOPTIONS, options, self.superparams) || {};
     self.dna = new DNA("dna.json", self.options.rootDir);
 
     self.app = express();
@@ -46,7 +46,7 @@ function Brain (options) {
         }));
         self.app.set("view engine", self.options.skinspider);
 
-        self.skinspider = new SkinSpider({path:viewDir, ext:self.options.viewExtension});
+        self.skinspider = new SkinSpider({path:viewDir, ext:self.options.viewExtension, helpers:self.options.helpers});
     }
 
     self.mcache = new MemoCache(self.options.mcache);
@@ -94,7 +94,45 @@ Brain.prototype.DEFAULTOPTIONS = {
     },
     vip : ["localhost"],
     loginRoute : "/login",
-    forbiddenRoute : "/forbidden"
+    forbiddenRoute : "/forbidden",
+    helpers : {
+        waptitle : function(context) {
+            var root = getRootContext(context);
+            if(!root) return;
+
+            var titleBuilder = [];
+            var siteName = root.dna && root.dna.SITENAME;
+            if(siteName) titleBuilder.push(siteName);
+
+            var wapTitle = root.wap && root.wap.title;
+            if(wapTitle && wapTitle != siteName) titleBuilder.push(wapTitle);
+
+            return titleBuilder.join(" | ");
+        },
+        wapauthor : function(context) {
+            var root = getRootContext(context);
+            if(!root) return;
+
+            if(root.wap && root.wap.author) return root.wap.author
+
+            return root.dna && root.dna.AUTHOR;
+        },
+        i : function(t, context) {
+            var root = getRootContext(context);
+            if(!root) return;
+
+            var languages = root.dna && root.dna.LANGUAGES;
+            var lang = root.session && root.session.lang;
+            return translateContent(t, languages, lang);
+        },
+        xsv : function(values, options) {
+            if(!values) return;
+            
+            var x = options && options.separator || ", ";
+
+            return values.join(x);
+        }
+    }
 };
 
 Brain.prototype.start = function() {
@@ -226,7 +264,7 @@ Brain.prototype.render = function(data, skeleton, skin) {
 
 Brain.prototype.viewbag = function(data) {
     var self = this;
-    var viewbag = Object.assign({dna : self.dna, superparams : self.superparams}, data);
+    var viewbag = Object.assign({dna : self.dna, superparams : self.superparams, bagroot:true}, data);
     return viewbag;
 }
 
@@ -378,4 +416,21 @@ function getUserref (self, hostname, referrer) {
     }
 
     return (hostname == referrer) ? self.USERTYPE.VIP : self.USERTYPE.UNKNOWN;
+}
+
+function getRootContext (context) {
+    if(!context || context.bagroot) return context;
+
+    return context && context.data && context.data.root;
+}
+
+function translateContent (t, languages, lang) {
+    if(!t) return;
+
+    lang = lang || languages && languages.length && languages[0];
+    if(typeof(t) != "object") return t;
+    
+    if(!t[lang]) lang = t.first();
+
+    return t[lang];
 }
