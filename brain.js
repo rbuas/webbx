@@ -117,6 +117,13 @@ Brain.prototype.DEFAULTOPTIONS = {
 
             return root.dna && root.dna.AUTHOR;
         },
+        xsv : function(values, options) {
+            if(!values) return;
+            
+            var x = options && options.separator || ", ";
+
+            return values.join(x);
+        },
         i : function(t, context) {
             var root = getRootContext(context);
             if(!root) return;
@@ -124,13 +131,6 @@ Brain.prototype.DEFAULTOPTIONS = {
             var languages = root.dna && root.dna.LANGUAGES;
             var lang = root.session && root.session.lang;
             return translateContent(t, languages, lang);
-        },
-        xsv : function(values, options) {
-            if(!values) return;
-            
-            var x = options && options.separator || ", ";
-
-            return values.join(x);
         }
     }
 };
@@ -343,7 +343,7 @@ function activeMemory (self) {
 function configCore (self) {
     //STATIC
     var publicpath = self.path(self.options.publicDir); 
-    self.app.use(express.static(publicpath));
+    self.app.use("/static", express.static(publicpath));
     log.message("BRAIN : static files : ", publicpath);
 
 

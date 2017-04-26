@@ -28,7 +28,6 @@ Heart.prototype.response = function(res, data, skeleton, skin, format) {
                 self.brain.render(data, skeleton, skin)
                 .then(function(html) {
                     res.setHeader("Content-Type", "text/html; charset=utf-8");
-                    res.setHeader("Content-Length", html.length);
                     res.end(html);
                     resolve();
                 })
@@ -92,12 +91,12 @@ Heart.prototype.map = function() {
     };
 }
 
-Heart.prototype.wappage = function(wapid, ref) {
+Heart.prototype.wappage = function(wapid, ref, skinop) {
     var self = this;
     return function(req, res) {
         self.brain.wap(wapid, ref)
         .then(function(wap) {
-            var skin = req.params.skin || self.brain.options.defaultSkin;
+            var skin = skinop || req.params.skin || self.brain.options.defaultSkin;
             var skeleton = req.params.skeleton || self.brain.options.masterSkeleton;
             return self.response(res, {wap:wap, session:req.session}, skeleton, skin, req.formatext || "html");
         })
