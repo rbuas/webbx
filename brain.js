@@ -96,6 +96,21 @@ Brain.prototype.DEFAULTOPTIONS = {
     loginRoute : "/login",
     forbiddenRoute : "/forbidden",
     helpers : {
+        i : function(t, context) {
+            var root = getRootContext(context);
+            if(!root) return;
+
+            var languages = root.dna && root.dna.LANGUAGES;
+            var lang = root.session && root.session.lang;
+            return translateContent(t, languages, lang);
+        },
+        xsv : function(values, options) {
+            if(!values) return;
+            
+            var x = options && options.separator || ", ";
+
+            return values.join(x);
+        },
         waptitle : function(context) {
             var root = getRootContext(context);
             if(!root) return;
@@ -116,21 +131,6 @@ Brain.prototype.DEFAULTOPTIONS = {
             if(root.wap && root.wap.author) return root.wap.author
 
             return root.dna && root.dna.AUTHOR;
-        },
-        xsv : function(values, options) {
-            if(!values) return;
-            
-            var x = options && options.separator || ", ";
-
-            return values.join(x);
-        },
-        i : function(t, context) {
-            var root = getRootContext(context);
-            if(!root) return;
-
-            var languages = root.dna && root.dna.LANGUAGES;
-            var lang = root.session && root.session.lang;
-            return translateContent(t, languages, lang);
         }
     }
 };
@@ -294,8 +294,9 @@ Brain.prototype.passport = function(route, usertype, userref) {
     }
 }
 
-// PRIVATE
 
+
+// PRIVATE
 
 function processSuperParams (self) {
     var args = process.argv.slice(2);
