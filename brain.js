@@ -1,5 +1,7 @@
 module.exports = Brain;
 
+var ROOT_DIR = process.cwd() || "";
+
 var bodyparser = require("body-parser");
 var express = require("express");
 var session = require("express-session");
@@ -7,7 +9,6 @@ var exphandlebars  = require("express-handlebars");
 var http = require("http");
 var path = require("path");
 
-var ROOT_DIR = process.cwd() || "";
 var jsext = require("jsext");
 var log = require("jsext").Log;
 var MemoCache = require("memocache");
@@ -46,7 +47,12 @@ function Brain (options) {
         }));
         self.app.set("view engine", self.options.skinspider);
 
-        self.skinspider = new SkinSpider({path:viewDir, ext:self.options.viewExtension, helpers:self.options.helpers});
+        self.skinspider = new SkinSpider({
+            path:viewDir, 
+            ext:self.options.viewExtension, 
+            helpers:self.options.helpers, 
+            compression:self.options.compression && self.options.htmlcompression
+        });
     }
 
     self.mcache = new MemoCache(self.options.mcache);
@@ -95,6 +101,15 @@ Brain.prototype.DEFAULTOPTIONS = {
     vip : ["localhost"],
     loginRoute : "/login",
     forbiddenRoute : "/forbidden",
+    compression : true,
+    htmlcompression : {
+        removeComments:            true,
+        collapseWhitespace:        true,
+        collapseBooleanAttributes: true,
+        removeAttributeQuotes:     true,
+        removeEmptyAttributes:     true,
+        minifyJS : true
+    },
     helpers : {
         i : function(t, context) {
             var root = getRootContext(context);

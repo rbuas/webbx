@@ -186,3 +186,13 @@ Heart.prototype.reset = function() {
         res.json({message : "SKIN_RESET|CACHE_RESET|SESSION_RESET"});
     };
 }
+
+Heart.prototype.favicon = function() {
+    var self = this;
+    return function(req, res) {
+        var standard = "favicon.ico";
+        var favicon = self.brain && self.brain.dna && self.brain.dna.SITEICON || standard;
+        var iconfile = self.brain && self.brain.path(favicon) || standard;
+        res.sendFile(iconfile);
+    };
+}
