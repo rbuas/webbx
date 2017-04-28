@@ -23,7 +23,7 @@
     "mediamemo": "^0.0.5",
     "memocache": "^1.0.4",
     "memodb": "^0.0.12",
-    "skinspider": "^0.0.7"
+    "skinspider": "^0.0.8"
   },
   "devDependencies": {
     "chai": "^3.5.0",
