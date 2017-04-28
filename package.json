@@ -1,6 +1,6 @@
 {
   "name": "webbx",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "A starter kit to build services and websites with nodejs and express.",
   "author": "rbuas <rodrigobuas@gmail.com>",
   "keywords": [
