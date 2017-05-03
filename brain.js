@@ -35,6 +35,8 @@ function Brain (options) {
     self.name = self.options.name;
     log.message("BRAIN : " + (self.name || "") + " starting ...");
 
+    self.helpers = defaultHelpers(self, self.options.helpers);
+
     if(self.options.skinspider) {
         var viewDir = self.path(self.options.viewsDir);
         self.app.set("views", viewDir);
@@ -50,7 +52,7 @@ function Brain (options) {
         self.skinspider = new SkinSpider({
             path:viewDir, 
             ext:self.options.viewExtension, 
-            helpers:self.options.helpers, 
+            helpers:self.helpers, 
             compression:self.options.compression && self.options.htmlcompression
         });
     }
@@ -109,44 +111,6 @@ Brain.prototype.DEFAULTOPTIONS = {
         removeAttributeQuotes:     true,
         removeEmptyAttributes:     true,
         minifyJS : true
-    },
-    helpers : {
-        i : function(t, context) {
-            var root = getRootContext(context);
-            if(!root) return;
-
-            var languages = root.dna && root.dna.LANGUAGES;
-            var lang = root.session && root.session.lang;
-            return translateContent(t, languages, lang);
-        },
-        xsv : function(values, options) {
-            if(!values) return;
-            
-            var x = options && options.separator || ", ";
-
-            return values.join(x);
-        },
-        waptitle : function(context) {
-            var root = getRootContext(context);
-            if(!root) return;
-
-            var titleBuilder = [];
-            var siteName = root.dna && root.dna.SITENAME;
-            if(siteName) titleBuilder.push(siteName);
-
-            var wapTitle = root.wap && root.wap.title;
-            if(wapTitle && wapTitle != siteName) titleBuilder.push(wapTitle);
-
-            return titleBuilder.join(" | ");
-        },
-        wapauthor : function(context) {
-            var root = getRootContext(context);
-            if(!root) return;
-
-            if(root.wap && root.wap.author) return root.wap.author
-
-            return root.dna && root.dna.AUTHOR;
-        }
     }
 };
 
@@ -449,4 +413,45 @@ function translateContent (t, languages, lang) {
     if(!t[lang]) lang = t.first();
 
     return t[lang];
+}
+
+function defaultHelpers (self, additionals) {
+    return Object.assign({}, {
+        i : function(t, context) {
+            var root = getRootContext(context);
+            if(!root) return;
+
+            var languages = root.dna && root.dna.LANGUAGES;
+            var lang = root.session && root.session.lang;
+            return translateContent(t, languages, lang);
+        },
+        xsv : function(values, options) {
+            if(!values) return;
+            
+            var x = options && options.separator || ", ";
+
+            return values.join(x);
+        },
+        waptitle : function(context) {
+            var root = getRootContext(context);
+            if(!root) return;
+
+            var titleBuilder = [];
+            var siteName = root.dna && root.dna.SITENAME;
+            if(siteName) titleBuilder.push(siteName);
+
+            var wapTitle = root.wap && root.wap.title;
+            if(wapTitle && wapTitle != siteName) titleBuilder.push(wapTitle);
+
+            return titleBuilder.join(" | ");
+        },
+        wapauthor : function(context) {
+            var root = getRootContext(context);
+            if(!root) return;
+
+            if(root.wap && root.wap.author) return root.wap.author
+
+            return root.dna && root.dna.AUTHOR;
+        }
+    }, additionals);
 }
