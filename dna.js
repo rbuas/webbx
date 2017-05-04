@@ -9,8 +9,21 @@ function DNA (file, dir) {
     var self = this;
     if(!file) throw new Error("DNA : missing params");
 
-    dir = dir || "";
-    var dnafile = path.normalize(path.join(dir, file));
+    self.file = file;
+    self.dir = dir;
+    self.reload();
+}
+
+DNA.prototype.get = function(key) {
+    var self = this;
+    if(!key) return self.data;
+
+    return self.data[key] || key;;
+}
+
+DNA.prototype.reload = function() {
+    var self = this;
+    var dnafile = path.normalize(path.join(self.dir || "", self.file));
     if(!jsext.fileExists(dnafile))
         return log.error("DNA : can not find the dna file", dnafile);
 
@@ -19,11 +32,4 @@ function DNA (file, dir) {
         return log.error("DNA : can not load dna file", dnafile);
 
     self.data = Object.assign(self, dnadata);
-}
-
-DNA.prototype.get = function(key) {
-    var self = this;
-    if(!key) return self.data;
-
-    return self.data[key] || key;;
 }

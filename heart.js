@@ -159,8 +159,7 @@ Heart.prototype.resetcache = function() {
     return function(req, res) {
         var when = moment().format("YYYYMMDDHHmmss");
         log.message("reset cache", when);
-        if(self.brain.mcache) self.brain.mcache.reset();
-        if(self.brain.iparrot) self.brain.iparrot.reset();
+        self.brain.resetmemory();
         res.json({message : "CACHE_RESET"});
     };
 }
@@ -170,7 +169,7 @@ Heart.prototype.resetskin = function() {
     return function(req, res) {
         var when = moment().format("YYYYMMDDHHmmss");
         log.message("reset skin", when);
-        self.brain.skinspider.reset();
+        self.brain.resetassets();
         res.json({message : "SKIN_RESET"});
     };
 }
@@ -180,10 +179,9 @@ Heart.prototype.reset = function() {
     return function(req, res) {
         var when = moment().format("YYYYMMDDHHmmss");
         log.message("reset skin", when);
-        self.brain.skinspider.reset();
+        self.brain.resetassets();
         log.message("reset cache", when);
-        if(self.brain.mcache) self.brain.mcache.reset();
-        if(self.brain.iparrot) self.brain.iparrot.reset();
+        self.brain.resetmemory();
         log.message("reset session", when);
         req.session.destroy();
         res.json({message : "SKIN_RESET|CACHE_RESET|SESSION_RESET"});

@@ -12,11 +12,12 @@ var path = require("path");
 
 var jsext = require("jsext");
 var log = require("jsext").Log;
+var SkinSpider = require("skinspider");
+var IParrot = require("iparrot");
 var MemoCache = require("memocache");
 var MemoDB = require("memodb");
 var MediaDB = require("mediamemo").Media;
-var SkinSpider = require("skinspider");
-var IParrot = require("iparrot");
+var MemoUserDB = require("../memouser").User;
 
 var DNA = require("./dna");
 
@@ -26,8 +27,6 @@ function Brain (options) {
     self.superparams = processSuperParams(self);
     self.version = jsext.loadJsonFile("version.json") || {version:""};
     self.options = Object.assign(true, {}, self.DEFAULTOPTIONS, options, self.superparams) || {};
-    self.dna = new DNA("dna.json", self.options.rootDir);
-    self.iparrot = new IParrot(Object.assign({languages:self.dna.LANGUAGES}, self.options.iparrot));
 
     self.app = express();
     self.app.use(compression());
@@ -39,21 +38,21 @@ function Brain (options) {
     self.name = self.options.name;
     log.message("BRAIN : " + (self.name || "") + " starting ...");
 
-    self.helpers = defaultHelpers(self, self.options.helpers);
+    self.dna = new DNA(self.options.dna, self.options.rootDir);
 
     if(self.options.skinspider) {
         var viewDir = self.path(self.options.viewsDir);
-        self.app.set("views", viewDir);
-        self.app.set("view cache", true);
-        log.message("BRAIN : skinspider : ", viewDir);
         self.app.engine(self.options.skinspider, exphandlebars({
             defaultLayout: self.options.masterSkeleton, 
             extname: "." + self.options.viewExtension, 
             partialsDir: viewDir + "/partials/",
             layoutDir: viewDir + "/layouts/"
         }));
+        self.app.set("views", viewDir);
+        self.app.set("view cache", true);
         self.app.set("view engine", self.options.skinspider);
 
+        self.helpers = defaultHelpers(self, self.options.helpers);
         self.skinspider = new SkinSpider({
             path:viewDir, 
             ext:self.options.viewExtension, 
@@ -66,9 +65,11 @@ function Brain (options) {
     self.memory = {};
     activeMemory(self);
 
+    self.iparrot = new IParrot(Object.assign({languages:self.dna.LANGUAGES}, self.options.iparrot));
+    self.friends = new MemoUserDB(Object.assign({mcache:self.mcache}, self.options.friends, setMessanger(self)));
+
     configCore(self);
 
-    self.routes = {};
     activeRoutes(self);
 
     self.start();
@@ -86,6 +87,7 @@ Brain.prototype.DEFAULTOPTIONS = {
     port : 5000,
     address : "localhost",
     rootDir: ROOT_DIR,
+    dna: "dna.json",
     publicDir: "static",
     viewsDir: "skeleton",
     masterSkeleton : "master",
@@ -104,6 +106,9 @@ Brain.prototype.DEFAULTOPTIONS = {
     iparrot: {
         path : "./static/resource",
         filename : "message.json"
+    },
+    friends: {
+        memopath:"./friends"
     },
     access : {
         VIP : ["/keys", "/count", "/connect", "/disconnect", "/block", "/page", "/resetsession"],
@@ -282,6 +287,18 @@ Brain.prototype.passport = function(route, usertype, userref) {
     }
 }
 
+Brain.prototype.resetmemory = function() {
+    var self = this;
+    if(self.mcache) self.mcache.reset();
+    if(self.iparrot) self.iparrot.resetcache();
+    if(self.dna) self.dna.reload();
+}
+
+Brain.prototype.resetassets = function() {
+    var self = this;
+    if(self.skinspider) self.skinspider.reset();
+}
+
 
 
 // PRIVATE
@@ -299,6 +316,8 @@ function processSuperParams (self) {
 }
 
 function activeRoutes (self) {
+    self.routes = {};
+
     var routes = self.options.routes;
     if(!routes)
         return;
@@ -451,4 +470,13 @@ function defaultHelpers (self, additionals) {
             return root.dna && root.dna.AUTHOR;
         }
     }, additionals);
+}
+
+function setMessanger (self) {
+    return {
+        message : function(userbadge, message) {
+            console.log("Friends message : " , message, userbadge);
+            //TODO
+        }
+    }
 }
