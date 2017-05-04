@@ -20,19 +20,19 @@
     "express-handlebars": "^3.0.0",
     "express-session": "^1.13.0",
     "handlebars": "^4.0.5",
-    "iparrot": "0.0.2",
-    "jsext": "^1.0.6",
-    "mediamemo": "^0.0.7",
-    "memocache": "^1.0.4",
-    "memodb": "^0.0.12",
-    "skinspider": "^0.0.11"
+    "iparrot": "*",
+    "jsext": "*",
+    "mediamemo": "*",
+    "memocache": "*",
+    "memodb": "*",
+    "skinspider": "*"
   },
   "devDependencies": {
     "chai": "^3.5.0",
     "mocha": "^2.4",
     "moment": "^2.18.1",
-    "webdrone": "^1.0.3",
-    "webseed": "^1.0.7",
+    "webdrone": "*",
+    "webseed": "*",
     "yargs": "^4.8.0"
   },
   "scripts": {
