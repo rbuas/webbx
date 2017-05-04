@@ -32,6 +32,7 @@ Heart.prototype.response = function(res, data, skeleton, skin, format) {
                     resolve();
                 })
                 .catch(function(error) {
+                    error = error || {};
                     error.data = data;
                     res.send(error);
                     resolve();
@@ -158,7 +159,8 @@ Heart.prototype.resetcache = function() {
     return function(req, res) {
         var when = moment().format("YYYYMMDDHHmmss");
         log.message("reset cache", when);
-        self.brain.mcache.reset();
+        if(self.brain.mcache) self.brain.mcache.reset();
+        if(self.brain.iparrot) self.brain.iparrot.reset();
         res.json({message : "CACHE_RESET"});
     };
 }
@@ -180,7 +182,8 @@ Heart.prototype.reset = function() {
         log.message("reset skin", when);
         self.brain.skinspider.reset();
         log.message("reset cache", when);
-        self.brain.mcache.reset();
+        if(self.brain.mcache) self.brain.mcache.reset();
+        if(self.brain.iparrot) self.brain.iparrot.reset();
         log.message("reset session", when);
         req.session.destroy();
         res.json({message : "SKIN_RESET|CACHE_RESET|SESSION_RESET"});

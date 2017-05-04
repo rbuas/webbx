@@ -15,10 +15,12 @@
     "url": "http://github.com/rbuas/webbx.git"
   },
   "dependencies": {
+    "compression": "^1.6.2",
     "express": "^4.13.4",
     "express-handlebars": "^3.0.0",
     "express-session": "^1.13.0",
     "handlebars": "^4.0.5",
+    "iparrot": "0.0.2",
     "jsext": "^1.0.0",
     "mediamemo": "^0.0.5",
     "memocache": "^1.0.4",

@@ -4,6 +4,7 @@ var ROOT_DIR = process.cwd() || "";
 
 var bodyparser = require("body-parser");
 var express = require("express");
+var compression = require("compression");
 var session = require("express-session");
 var exphandlebars  = require("express-handlebars");
 var http = require("http");
@@ -15,6 +16,7 @@ var MemoCache = require("memocache");
 var MemoDB = require("memodb");
 var MediaDB = require("mediamemo").Media;
 var SkinSpider = require("skinspider");
+var IParrot = require("iparrot");
 
 var DNA = require("./dna");
 
@@ -25,8 +27,10 @@ function Brain (options) {
     self.version = jsext.loadJsonFile("version.json") || {version:""};
     self.options = Object.assign(true, {}, self.DEFAULTOPTIONS, options, self.superparams) || {};
     self.dna = new DNA("dna.json", self.options.rootDir);
+    self.iparrot = new IParrot(Object.assign({languages:self.dna.LANGUAGES}, self.options.iparrot));
 
     self.app = express();
+    self.app.use(compression());
     log.assert(self.app, "BRAIN::ERROR : can not create app from express");
 
     self.server = http.createServer(self.app);
@@ -40,6 +44,7 @@ function Brain (options) {
     if(self.options.skinspider) {
         var viewDir = self.path(self.options.viewsDir);
         self.app.set("views", viewDir);
+        self.app.set("view cache", true);
         log.message("BRAIN : skinspider : ", viewDir);
         self.app.engine(self.options.skinspider, exphandlebars({
             defaultLayout: self.options.masterSkeleton, 
@@ -96,6 +101,10 @@ Brain.prototype.DEFAULTOPTIONS = {
             console.log("BRAIN::WARNING : memory was attempt next to the limit : ", stats);
         }
     },
+    iparrot: {
+        path : "./static/resource",
+        filename : "message.json"
+    },
     access : {
         VIP : ["/keys", "/count", "/connect", "/disconnect", "/block", "/page", "/resetsession"],
         ADMIN : ["/create", "/clone", "/update", "/remove", "/removelist", "/synapse", "/resetcache"]
@@ -110,7 +119,7 @@ Brain.prototype.DEFAULTOPTIONS = {
         collapseBooleanAttributes: true,
         removeAttributeQuotes:     true,
         removeEmptyAttributes:     true,
-        minifyJS : true
+        minifyJS:                  true
     }
 };
 
@@ -326,7 +335,6 @@ function configCore (self) {
     self.app.use("/static", express.static(publicpath));
     log.message("BRAIN : static files : ", publicpath);
 
-
     //BASIC
     self.app.use(bodyparser.json());
     self.app.use(bodyparser.json({ type: 'application/vnd.api+json' })); 
@@ -404,26 +412,15 @@ function getRootContext (context) {
     return context && context.data && context.data.root;
 }
 
-function translateContent (t, languages, lang) {
-    if(!t) return;
-
-    lang = lang || languages && languages.length && languages[0];
-    if(typeof(t) != "object") return t;
-    
-    if(!t[lang]) lang = t.first();
-
-    return t[lang];
-}
-
 function defaultHelpers (self, additionals) {
     return Object.assign({}, {
         i : function(t, context) {
             var root = getRootContext(context);
             if(!root) return;
 
-            var languages = root.dna && root.dna.LANGUAGES;
             var lang = root.session && root.session.lang;
-            return translateContent(t, languages, lang);
+            var itext = self.iparrot && self.iparrot.text(t, lang);
+            return itext;
         },
         xsv : function(values, options) {
             if(!values) return;
