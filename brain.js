@@ -88,10 +88,10 @@ Brain.prototype.DEFAULTOPTIONS = {
     address : "localhost",
     rootDir: ROOT_DIR,
     dna: "dna.json",
-    publicDir: "static",
+    static: ["static", "ext", "skeleton"],
     viewsDir: "skeleton",
-    masterSkeleton : "master",
-    defaultSkin : "page",
+    masterSkeleton : "app",
+    defaultSkin : "wappage",
     encryptkey: "secret",
     wapref:"wap",
     skinspider: "html",
@@ -355,9 +355,13 @@ function activeMemory (self) {
 
 function configCore (self) {
     //STATIC
-    var publicpath = self.path(self.options.publicDir); 
-    self.app.use("/static", express.static(publicpath));
-    log.message("BRAIN : static files : ", publicpath);
+    if(self.options.static) {
+        self.options.static.forEach(function(static) {
+            var publicpath = self.path(static); 
+            self.app.use("/" + static, express.static(publicpath));
+            log.message("BRAIN : static path : ", publicpath);
+        });
+    }
 
     //BASIC
     self.app.use(bodyparser.json());
