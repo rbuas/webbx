@@ -17,7 +17,7 @@ var IParrot = require("iparrot");
 var MemoCache = require("memocache");
 var MemoDB = require("memodb");
 var MediaDB = require("mediamemo").Media;
-var MemoUserDB = require("../memouser").User;
+var MemoUserDB = require("memouser").User;
 
 var DNA = require("./dna");
 
@@ -228,6 +228,11 @@ Brain.prototype.get = function(path, callback, help) {
     self.route(newroute);
 }
 
+Brain.prototype.param = function(param, callback) {
+    var self = this;
+    self.app.param(param, callback);
+}
+
 Brain.prototype.usocket = function(path, callback, help) {
     var self = this;
     var newroute = {method:"usocket", path:path, cb:callback, help:help};
@@ -390,25 +395,11 @@ function configCore (self) {
 
     //WAP MIDDLEWARE
     var memodb = self.memory[self.options.wapref];
-    if(memodb) {
-        self.app.param(memodb.TYPE, function (req, res, next, memo) {
-            var memoid = req.params[memodb.TYPE] || memo;
-            if(!memoid) return next();
+    if(memodb) self.param(memodb.TYPE, memodb.router.memoParam());
 
-            memodb.get(memoid)
-            .then(function(memo) {
-                req[memodb.TYPE + "id"] = memoid;
-                req[memodb.TYPE] = memo;
-                next();
-            })
-            .catch(function(error){
-                req[memodb.TYPE + "id"] = memoid;
-                req[memodb.TYPE] = null;
-                req[memodb.TYPE + "error"] = error;
-                next();
-            });
-        });
-    }
+    //FRIEND MIDDLEWARE
+    var friendsdb = self.friends;
+    if(friendsdb) self.param(friendsdb.TYPE, friendsdb.router.memoParam());
 }
 
 function getUsertype (self, adminLogged, userLogged, referrer) {
