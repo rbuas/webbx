@@ -110,6 +110,8 @@ Heart.prototype.wappage = function(wapid, ref, skinop) {
 Heart.prototype.page = function() {
     var self = this;
     return function(req, res) {
+        if(!req.wap) return res.redirect("/404");
+
         var wap = req.wap;
         var skin = req.params.skin || self.brain.options.defaultSkin;
         var skeleton = req.params.skeleton || self.brain.options.masterSkeleton;
