@@ -131,7 +131,6 @@ Heart.prototype.block = function() {
 Heart.prototype.connect = function() {
     var self = this;
     return function(req, res) {
-        log.message("connection start");
         var response = self.brain.viewbag({message : "SESSION_STARTED"}, true);
         res.json(response);
     };

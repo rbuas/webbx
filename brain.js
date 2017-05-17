@@ -111,7 +111,7 @@ Brain.prototype.DEFAULTOPTIONS = {
         memopath:"./friends"
     },
     access : {
-        VIP : ["/keys", "/count", "/connect", "/disconnect", "/block", "/page", "/resetsession"],
+        VIP : ["/keys", "/count", "/block", "/page", "/resetsession"],
         ADMIN : ["/create", "/clone", "/update", "/remove", "/removelist", "/synapse", "/resetcache"]
     },
     vip : ["localhost"],
@@ -278,16 +278,16 @@ Brain.prototype.passport = function(route, usertype, userref) {
     if(usertype != self.USERTYPE.ADMIN) {
         var adminList = self.options.access[self.USERTYPE.ADMIN];
         for(var i = 0; i < adminList.length; ++i) {
-            var path = adminList[i];
-            if(route.indexOf(path) >= 0) return {redirection:self.options.loginRoute, code:403};
+            var itempath = adminList[i];
+            if(route.indexOf(itempath) >= 0) return {redirection:self.options.loginRoute, code:403};
         }
     }
 
     if(userref != self.USERTYPE.VIP) {
         var clientList = self.options.access[self.USERTYPE.VIP];
         for(var i = 0; i < clientList.length; ++i) {
-            var path = clientList[i];
-            if(route.indexOf(path) >= 0) return {redirection:self.options.forbiddenRoute, code:403};
+            var itempath = clientList[i];
+            if(route.indexOf(itempath) >= 0) return {redirection:self.options.forbiddenRoute, code:403};
         }
     }
 }
