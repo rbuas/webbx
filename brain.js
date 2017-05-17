@@ -120,6 +120,7 @@ Brain.prototype.DEFAULTOPTIONS = {
     forbiddenRoute : "/forbidden",
     compression : true,
     htmlcompression : {
+        caseSensitive:             true,
         removeComments:            true,
         collapseWhitespace:        true,
         collapseBooleanAttributes: true,
