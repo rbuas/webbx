@@ -1,16 +1,16 @@
-module.exports = Heart;
+module.exports = CortexCentral;
 
 var moment = require("moment");
 var jsext = require("jsext");
 var log = require("jsext").Log;
 
-function Heart (brain) {
+function CortexCentral (brain) {
     var self = this;
     self.brain = brain;
     self.options = brain.options || {};
 }
 
-Heart.prototype.response = function(res, data, skeleton, skin, format) {
+CortexCentral.prototype.response = function(res, data, skeleton, skin, format) {
     var self = this;
     return new Promise(function(resolve, reject) {
         if(!res) return reject("missing response reference");
@@ -52,12 +52,12 @@ Heart.prototype.response = function(res, data, skeleton, skin, format) {
     });
 }
 
-Heart.prototype.errorpage = function(res, errormessage, detail) {
+CortexCentral.prototype.errorpage = function(res, errormessage, detail) {
     var self = this;
     return self.response(res, {errormessage:errormessage, error:detail}, "master", "error", "html");
 }
 
-Heart.prototype.hello = function() {
+CortexCentral.prototype.hello = function() {
     var self = this;
     return function(req, res) {
         var hello = req.params.hello;
@@ -66,7 +66,7 @@ Heart.prototype.hello = function() {
     };
 }
 
-Heart.prototype.synapse = function() {
+CortexCentral.prototype.synapse = function() {
     var self = this;
     return function(req, res) {
         var routes = self.brain.getRoutes();
@@ -83,7 +83,7 @@ Heart.prototype.synapse = function() {
     };
 }
 
-Heart.prototype.map = function() {
+CortexCentral.prototype.map = function() {
     var self = this;
     return function(req, res) {
         var ref = req.params.ref;
@@ -92,7 +92,7 @@ Heart.prototype.map = function() {
     };
 }
 
-Heart.prototype.wappage = function(wapid, ref, skinop) {
+CortexCentral.prototype.wappage = function(wapid, ref, skinop) {
     var self = this;
     return function(req, res) {
         self.brain.wap(wapid, ref)
@@ -107,7 +107,7 @@ Heart.prototype.wappage = function(wapid, ref, skinop) {
     };
 }
 
-Heart.prototype.page = function() {
+CortexCentral.prototype.page = function() {
     var self = this;
     return function(req, res) {
         if(!req.wap) return res.redirect("/404");
@@ -119,7 +119,7 @@ Heart.prototype.page = function() {
     };
 }
 
-Heart.prototype.block = function() {
+CortexCentral.prototype.block = function() {
     var self = this;
     return function(req, res) {
         var wap = req.wap;
@@ -128,7 +128,7 @@ Heart.prototype.block = function() {
     };
 }
 
-Heart.prototype.connect = function() {
+CortexCentral.prototype.connect = function() {
     var self = this;
     return function(req, res) {
         var response = self.brain.viewbag({message : "SESSION_STARTED"}, true);
@@ -136,7 +136,7 @@ Heart.prototype.connect = function() {
     };
 }
 
-Heart.prototype.disconnect = function() {
+CortexCentral.prototype.disconnect = function() {
     var self = this;
     return function(req, res) {
         var when = Date.now();
@@ -145,7 +145,7 @@ Heart.prototype.disconnect = function() {
     };
 }
 
-Heart.prototype.resetsession = function() {
+CortexCentral.prototype.resetsession = function() {
     var self = this;
     return function(req, res) {
         var when = moment().format("YYYYMMDDHHmmss");
@@ -155,7 +155,7 @@ Heart.prototype.resetsession = function() {
     };
 }
 
-Heart.prototype.resetcache = function() {
+CortexCentral.prototype.resetcache = function() {
     var self = this;
     return function(req, res) {
         var when = moment().format("YYYYMMDDHHmmss");
@@ -165,7 +165,7 @@ Heart.prototype.resetcache = function() {
     };
 }
 
-Heart.prototype.resetskin = function() {
+CortexCentral.prototype.resetskin = function() {
     var self = this;
     return function(req, res) {
         var when = moment().format("YYYYMMDDHHmmss");
@@ -175,7 +175,7 @@ Heart.prototype.resetskin = function() {
     };
 }
 
-Heart.prototype.reset = function() {
+CortexCentral.prototype.reset = function() {
     var self = this;
     return function(req, res) {
         var when = moment().format("YYYYMMDDHHmmss");
@@ -189,7 +189,7 @@ Heart.prototype.reset = function() {
     };
 }
 
-Heart.prototype.favicon = function() {
+CortexCentral.prototype.favicon = function() {
     var self = this;
     return function(req, res) {
         var standard = "favicon.ico";

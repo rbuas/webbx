@@ -18,7 +18,7 @@ DNA.prototype.get = function(key) {
     var self = this;
     if(!key) return self.data;
 
-    return self.data[key] || key;;
+    return self.data[key] || key;
 }
 
 DNA.prototype.reload = function() {
@@ -31,5 +31,8 @@ DNA.prototype.reload = function() {
     if(!dnadata)
         return log.error("DNA : can not load dna file", dnafile);
 
-    self.data = Object.assign({}, dnadata);
+    delete(dnadata.file);
+    delete(dnadata.dir);
+
+    Object.assign(self, dnadata);
 }

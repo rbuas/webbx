@@ -20,6 +20,7 @@ var MediaDB = require("mediamemo").Media;
 var MemoUserDB = require("memouser").User;
 
 var DNA = require("./dna");
+var CortexCentral = require("./cortexcentral");
 
 function Brain (options) {
     var self = this;
@@ -62,11 +63,11 @@ function Brain (options) {
     }
 
     self.mcache = new MemoCache(self.options.mcache);
-    self.memory = {};
     activeMemory(self);
 
-    self.iparrot = new IParrot(Object.assign({languages:self.dna.get("LANGUAGES")}, self.options.iparrot));
+    self.iparrot = new IParrot(Object.assign({languages:self.dna.LANGUAGES}, self.options.iparrot));
     self.friends = new MemoUserDB(Object.assign({mcache:self.mcache}, self.options.friends, setMessanger(self)));
+    self.cortex = new CortexCentral(self);
 
     configCore(self);
 
@@ -263,7 +264,7 @@ Brain.prototype.render = function(data, skeleton, skin) {
 Brain.prototype.viewbag = function(data) {
     var self = this;
     var viewbag = Object.assign({}, {
-        dna : self.dna.get(), 
+        dna : self.dna, 
         superparams : self.superparams, 
         bagroot:true}, data);
     return viewbag;
@@ -338,11 +339,12 @@ function activeRoutes (self) {
 }
 
 function activeMemory (self) {
+    self.memory = self.memory || {};
+
     var memory = self.options.memory;
     if(!memory)
         return;
 
-    self.memory = self.memory || {};
     var memoryKeys = Object.keys(memory);
     memoryKeys.forEach(function(key) {
         var memoConfig = Object.assign({mcache:self.mcache, supertype:"memo"}, memory[key]);
@@ -456,7 +458,7 @@ function defaultHelpers (self, additionals) {
             if(!root) return;
 
             var titleBuilder = [];
-            var siteName = root.dna.get("SITENAME");
+            var siteName = root.dna.SITENAME;
             if(siteName) titleBuilder.push(siteName);
 
             var wapTitle = root.wap && root.wap.title;
@@ -470,7 +472,7 @@ function defaultHelpers (self, additionals) {
 
             if(root.wap && root.wap.author) return root.wap.author
 
-            return root.dna.get("AUTHOR");
+            return root.dna.AUTHOR;
         }
     }, additionals);
 }
