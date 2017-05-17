@@ -31,5 +31,5 @@ DNA.prototype.reload = function() {
     if(!dnadata)
         return log.error("DNA : can not load dna file", dnafile);
 
-    self.data = Object.assign(self, dnadata);
+    self.data = Object.assign({}, dnadata);
 }

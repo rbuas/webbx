@@ -65,7 +65,7 @@ function Brain (options) {
     self.memory = {};
     activeMemory(self);
 
-    self.iparrot = new IParrot(Object.assign({languages:self.dna.LANGUAGES}, self.options.iparrot));
+    self.iparrot = new IParrot(Object.assign({languages:self.dna.get("LANGUAGES")}, self.options.iparrot));
     self.friends = new MemoUserDB(Object.assign({mcache:self.mcache}, self.options.friends, setMessanger(self)));
 
     configCore(self);
@@ -115,7 +115,7 @@ Brain.prototype.DEFAULTOPTIONS = {
         ADMIN : ["/create", "/clone", "/update", "/remove", "/removelist", "/synapse", "/resetcache"]
     },
     vip : ["localhost"],
-    loginRoute : "/login",
+    loginRoute : "/",
     forbiddenRoute : "/forbidden",
     compression : true,
     htmlcompression : {
@@ -262,7 +262,10 @@ Brain.prototype.render = function(data, skeleton, skin) {
 
 Brain.prototype.viewbag = function(data) {
     var self = this;
-    var viewbag = Object.assign({dna : self.dna, superparams : self.superparams, bagroot:true}, data);
+    var viewbag = Object.assign({}, {
+        dna : self.dna.get(), 
+        superparams : self.superparams, 
+        bagroot:true}, data);
     return viewbag;
 }
 
@@ -279,7 +282,7 @@ Brain.prototype.passport = function(route, usertype, userref) {
         var adminList = self.options.access[self.USERTYPE.ADMIN];
         for(var i = 0; i < adminList.length; ++i) {
             var itempath = adminList[i];
-            if(route.indexOf(itempath) >= 0) return {redirection:self.options.loginRoute, code:403};
+            if(route.indexOf(itempath) >= 0) return {redirection:self.options.loginRoute + "?passporttype=" + usertype, code:403};
         }
     }
 
@@ -287,9 +290,11 @@ Brain.prototype.passport = function(route, usertype, userref) {
         var clientList = self.options.access[self.USERTYPE.VIP];
         for(var i = 0; i < clientList.length; ++i) {
             var itempath = clientList[i];
-            if(route.indexOf(itempath) >= 0) return {redirection:self.options.forbiddenRoute, code:403};
+            if(route.indexOf(itempath) >= 0) return {redirection:self.options.forbiddenRoute + "?passportref=" + userref, code:403};
         }
     }
+
+    return {code : 200};
 }
 
 Brain.prototype.resetmemory = function() {
@@ -394,7 +399,10 @@ function configCore (self) {
         req.usertype = getUsertype(self, req.useradminLogged, req.userLogged);
         req.userref = getUserref(self, req.hostname, req.headers.referrer || req.headers.referer || req.header("Referrer") || req.header("Referer"));
         var pass = self.passport(req.url, req.usertype, req.userref);
-        next(pass);
+        if(!pass || pass.code != 200)
+            res.redirect(pass.redirection || "/");
+
+        next();
     });
 
     //WAP MIDDLEWARE
@@ -448,7 +456,7 @@ function defaultHelpers (self, additionals) {
             if(!root) return;
 
             var titleBuilder = [];
-            var siteName = root.dna && root.dna.SITENAME;
+            var siteName = root.dna.get("SITENAME");
             if(siteName) titleBuilder.push(siteName);
 
             var wapTitle = root.wap && root.wap.title;
@@ -462,7 +470,7 @@ function defaultHelpers (self, additionals) {
 
             if(root.wap && root.wap.author) return root.wap.author
 
-            return root.dna && root.dna.AUTHOR;
+            return root.dna.get("AUTHOR");
         }
     }, additionals);
 }
