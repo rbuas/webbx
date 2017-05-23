@@ -397,7 +397,7 @@ function configCore (self) {
         next();
     });
 
-    //ACCESS MIDDLEWARE
+    //ACCESS MIDDLEWARE - TODO : to verify a possible problem with order param/use 
     self.app.use(function(req, res, next) {
         req.usertype = getUsertype(self, req.useradminLogged, req.userLogged);
         req.userref = getUserref(self, req.hostname, req.headers.referrer || req.headers.referer || req.header("Referrer") || req.header("Referer"));
@@ -408,13 +408,19 @@ function configCore (self) {
         next();
     });
 
-    //WAP MIDDLEWARE
-    var memodb = self.memory[self.options.wapref];
-    if(memodb) self.param(memodb.TYPE, memodb.router.memoParam());
-
     //FRIEND MIDDLEWARE
     var friendsdb = self.friends;
     if(friendsdb) self.param(friendsdb.TYPE, friendsdb.router.memoParam());
+
+    //WAP MIDDLEWARE
+    var memodb = self.memory[self.options.wapref];
+    if(memodb) {
+        self.param(memodb.TYPE, memodb.router.memoParam());
+        self.param(memodb.TYPE, function (req, res, next) {
+            if(req.wap) req.wap = translateWap(self, req.wap, req.lang);
+            next();
+        });
+    }
 }
 
 function getUsertype (self, adminLogged, userLogged, referrer) {
@@ -485,4 +491,14 @@ function setMessanger (self) {
             //TODO
         }
     }
+}
+
+function translateWap (self, wap, lang) {
+    if(!self || !wap) return;
+
+    var wo = Object.assign({}, wap);
+    if(wo.metadecription) wo.metadecription = IParrot.translate(wo.metadecription, lang, self.dna.LANGUAGES);
+    if(wo.resume) wo.resume = IParrot.translate(wo.resume, lang, self.dna.LANGUAGES);
+    if(wo.content) wo.content = IParrot.translate(wo.content, lang, self.dna.LANGUAGES);
+    return wo;
 }

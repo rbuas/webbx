@@ -107,6 +107,18 @@ CortexCentral.prototype.wappage = function(wapid, ref, skinop) {
     };
 }
 
+CortexCentral.prototype.wap = function() {
+    var self = this;
+    return function(req, res) {
+        if(!req.wap) return res.redirect("/404");
+
+        var wap = req.wap;
+        var skin = null;
+        var skeleton = null;
+        return self.response(res, wap, skeleton, skin, req.formatext || "json");
+    };
+}
+
 CortexCentral.prototype.page = function() {
     var self = this;
     return function(req, res) {
