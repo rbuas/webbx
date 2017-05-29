@@ -494,11 +494,49 @@ function setMessanger (self) {
 }
 
 function translateWap (self, wap, lang) {
-    if(!self || !wap) return;
+    if(!self || !wap) return wap;
 
     var wo = Object.assign({}, wap);
-    if(wo.metadecription) wo.metadecription = IParrot.translate(wo.metadecription, lang, self.dna.LANGUAGES);
-    if(wo.resume) wo.resume = IParrot.translate(wo.resume, lang, self.dna.LANGUAGES);
-    if(wo.content) wo.content = IParrot.translate(wo.content, lang, self.dna.LANGUAGES);
+    ["metadescription", "resume", "content", "contentlist"]
+    .forEach(function(item) {
+        if(wo[item]) wo[item] = translateItem(self, wo[item], lang);
+    });
+
     return wo;
+}
+
+function translateItem (self, item, lang) {
+    if(!self || !item) return item;
+
+    if(Array.isArray(item)) {
+        return item.map(function(sub) {
+            return translateItem(self, sub, lang);
+        });
+    } else if (item.label || item.info || item.detail || item.caption || item.child) {
+        return translateAnchor(self, item, lang);
+    } else {
+        return translateText(self, item, lang);
+    }
+}
+
+function translateAnchor (self, anchor, lang) {
+    if(!self || !anchor) return anchor;
+    if(!anchor.label && !anchor.info && !anchor.detail && !anchor.caption && !anchor.child) return anchor;
+
+    ["label", "info", "detail", "caption"].forEach(function(prop) {
+        if(anchor[prop]) anchor[prop] = translateText(self, anchor[prop], lang);
+    });
+
+    if(anchor.child && anchor.child.length) {
+        anchor.child.map(function(child) {
+            return translateAnchor(self, child, lang);
+        });
+    }
+    return anchor;
+}
+
+function translateText (self, text, lang) {
+    if(!self || !text) return text;
+
+    return IParrot.translate(text, lang, self.dna.LANGUAGES);
 }
