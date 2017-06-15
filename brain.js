@@ -417,8 +417,12 @@ function configCore (self) {
     if(memodb) {
         self.param(memodb.TYPE, memodb.router.memoParam());
         self.param(memodb.TYPE, function (req, res, next) {
-            if(req.wap) req.wap = translateWap(self, req.wap, req.lang);
-            next();
+            proccessListType(self, req.wap)
+            .then(function(wap) {
+                req.wap = wap;
+                if(req.wap) req.wap = translateWap(self, req.wap, req.session && req.session.lang);
+                next();
+            })
         });
     }
 }
@@ -460,6 +464,21 @@ function defaultHelpers (self, additionals) {
 
             return values.join(x);
         },
+        ifwap : function(val, options) {
+            if(val && val.type && val.type == "wap")
+                return options.fn(val);
+            else
+                return options.inverse(val);
+        },
+        ifanchorlink : function(val, options) {
+            if(!val || val.type && val.type == "wap")
+                return options.inverse(val);
+
+            if(val.label || val.caption || val.info || val.detail || val.child)
+                return options.fn(val);
+            else
+                return options.inverse(val);
+        },
         waptitle : function(context) {
             var root = getRootContext(context);
             if(!root) return;
@@ -496,8 +515,10 @@ function setMessanger (self) {
 function translateWap (self, wap, lang) {
     if(!self || !wap) return wap;
 
+    lang = lang || self.dna && self.dna.LANGUAGES && self.dna.LANGUAGES[0];
+
     var wo = Object.assign({}, wap);
-    ["metadescription", "resume", "content", "contentlist"]
+    ["title", "metadescription", "resume", "content", "contentlist"]
     .forEach(function(item) {
         if(wo[item]) wo[item] = translateItem(self, wo[item], lang);
     });
@@ -512,6 +533,8 @@ function translateItem (self, item, lang) {
         return item.map(function(sub) {
             return translateItem(self, sub, lang);
         });
+    } else if (item.id && item.type == "wap") {
+        return translateWap(self, item, lang);
     } else if (item.label || item.info || item.detail || item.caption || item.child) {
         return translateAnchor(self, item, lang);
     } else {
@@ -538,5 +561,28 @@ function translateAnchor (self, anchor, lang) {
 function translateText (self, text, lang) {
     if(!self || !text) return text;
 
-    return IParrot.translate(text, lang, self.dna.LANGUAGES);
+    return self.iparrot.text(text, lang);
+}
+
+function proccessListType (self, wap) {
+    return new Promise(function(resolve, reject) {
+        if(!self || !wap) return reject(wap);
+
+        if(!wap.listtype) return resolve(wap);
+
+        var wo = Object.assign({}, wap);
+        var db = self.memory[wo.listtype];
+        if(!db) return resolve(wap);
+
+        wo.contentlist = wo.contentlist.map(function(item) {
+            return db.get(item);
+        });
+        Promise.all(wo.contentlist)
+        .then(function(waplist){
+            wo.contentlist = waplist.clean();
+            return wo;
+        })
+        .then(resolve)
+        .catch(reject);
+    });
 }

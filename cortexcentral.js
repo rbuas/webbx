@@ -143,7 +143,7 @@ CortexCentral.prototype.block = function() {
 CortexCentral.prototype.connect = function() {
     var self = this;
     return function(req, res) {
-        var response = self.brain.viewbag({message : "SESSION_STARTED"}, true);
+        var response = self.brain.viewbag({message : "SESSION_STARTED", session:req.session}, true);
         res.json(response);
     };
 }
@@ -154,6 +154,15 @@ CortexCentral.prototype.disconnect = function() {
         var when = Date.now();
         log.message("disconnection", when);
         res.json({message : "DISCONNECT"});
+    };
+}
+
+CortexCentral.prototype.setlang = function() {
+    var self = this;
+    return function(req, res) {
+        var lang = req.params.lang || "";
+        req.session.lang = lang && lang.toLowerCase();
+        res.json({message : "LANG_CHANGED", lang:req.session.lang, session:req.session});
     };
 }
 
