@@ -1,26 +1,26 @@
 module.exports = Brain;
 
-var ROOT_DIR = process.cwd() || "";
+const ROOT_DIR = process.cwd() || "";
 
-var bodyparser = require("body-parser");
-var express = require("express");
-var compression = require("compression");
-var session = require("express-session");
-var exphandlebars  = require("express-handlebars");
-var http = require("http");
-var path = require("path");
+const bodyparser = require("body-parser");
+const express = require("express");
+const compression = require("compression");
+const session = require("express-session");
+const exphandlebars  = require("express-handlebars");
+const http = require("http");
+const path = require("path");
 
-var jsext = require("jsext");
-var log = require("jsext").Log;
-var SkinSpider = require("skinspider");
-var IParrot = require("iparrot");
-var MemoCache = require("memocache");
-var MemoDB = require("memodb");
-var MediaDB = require("mediamemo").Media;
-var MemoUserDB = require("memouser").User;
+const jsext = require("jsext");
+const log = require("jsext").Log;
+const SkinSpider = require("skinspider");
+const IParrot = require("iparrot");
+const MemoCache = require("memocache");
+const MemoDB = require("memodb");
+const MediaDB = require("mediaroom").Media;
+const MemoUserDB = require("memouser").User;
 
-var DNA = require("./dna");
-var CortexCentral = require("./cortexcentral");
+const DNA = require("./dna");
+const CortexCentral = require("./cortexcentral");
 
 function Brain (options) {
     var self = this;
@@ -94,7 +94,7 @@ Brain.prototype.DEFAULTOPTIONS = {
     masterSkeleton : "app",
     defaultSkin : "wappage",
     encryptkey: "secret",
-    wapref:"wap",
+    wappriority:["wap"],
     skinspider: "html",
     viewExtension: "html",
     mcache : {
@@ -199,23 +199,46 @@ Brain.prototype.getRoutes = function () {
     return self.routes;
 }
 
-Brain.prototype.map = function (wapref) {
-    var self = this;
-    var memodb = self.memory[ref || self.options.wapref];
-    if(!memddb) return;
+Brain.prototype.map = function () {
+    return this.options.wappriority.reduce((arr, val) => {
+        var wr = this.wapName(val);
+        var memodb = this.memory[wr];
+        if(!memddb) return arr;
 
-    return memodb.keys();
+        return arr.concat(memodb.keys());
+    }, []);
 }
 
 Brain.prototype.wap = function(wapid, wapref) {
-    var self = this;
-    return new Promise(function(resolve, reject) {
-        wapref = wapref || self.options.wapref;
-        var memodb = self.memory[wapref];
-        if(!memodb) return reject("Can not found the wap momodb ref " + wapref);
+    return new Promise((resolve, reject) => {
+        const memodb = this.wapDB(wapid, wapref);
+        if(!memodb) return reject("Can not found the wap momodb ref " + wr);
 
         return memodb.get(wapid).then(resolve, reject);
     });
+}
+
+Brain.prototype.wapName = function(name) {
+    var self = this;
+    if(!self.options || !self.options.wappriority) return name;
+
+    if(name && self.options.wappriority.indexOf(name) >= 0) return name;
+
+    return self.options.wappriority && self.options.wappriority.length && self.options.wappriority[0];
+}
+
+Brain.prototype.wapDB = function(wapid, dbname) {
+    if(dbname) {
+        const db = dbname && this.getMemoryRef(dbname);
+        return db && db.exists(wapid) ? db : null;
+    }
+
+    for(let i = 0; i < this.options.wappriority.length; ++i) {
+        const dbname = this.options.wappriority[i];
+        const db = dbname && this.getMemoryRef(dbname);
+        if(db && db.exists(wapid)) return db;
+    }
+    return null;
 }
 
 Brain.prototype.post = function(path, callback, help) {
@@ -311,6 +334,12 @@ Brain.prototype.resetassets = function() {
     if(self.skinspider) self.skinspider.reset();
 }
 
+Brain.prototype.getMemoryRef = function(key) {
+    if(!key) return;
+
+    return this.memory[key];
+}
+
 
 
 // PRIVATE
@@ -352,6 +381,12 @@ function activeMemory (self) {
         switch(memoConfig.supertype) {
             case("media"):
                 self.memory[key] = new MediaDB(memoConfig);
+                if(memoConfig.collectiontype && self.memory[key].collection) {
+                    self.memory[memoConfig.collectiontype] = self.memory[key].collection;
+                }
+                break;
+            case("collection"):
+                self.memory[key] = new CollectionDB(memoConfig);
                 break;
             case("memo"):
             default:
@@ -413,16 +448,33 @@ function configCore (self) {
     if(friendsdb) self.param(friendsdb.TYPE, friendsdb.router.memoParam());
 
     //WAP MIDDLEWARE
-    var memodb = self.memory[self.options.wapref];
+    const wapref = self.options.wappriority && self.options.wappriority.length && self.options.wappriority[0];
+    const memodb = self.getMemoryRef(wapref);
     if(memodb) {
-        self.param(memodb.TYPE, memodb.router.memoParam());
-        self.param(memodb.TYPE, function (req, res, next) {
-            proccessListType(self, req.wap)
-            .then(function(wap) {
-                req.wap = wap;
-                if(req.wap) req.wap = translateWap(self, req.wap, req.session && req.session.lang);
+        self.param(memodb.TYPE, function (req, res, next, memo) {
+            var memoparam = memodb.TYPE;
+            var memoparamid = memodb.TYPE + "id";
+            var memoid = req.params[memoparam] || memo;
+            if(!memoid) return next();
+
+            self.wap(memoid)
+            .then(function(memo) {
+                return proccessListType(self, memo);
+            })
+            .then(function(memo) {
+                return translateWap(self, memo, req.session && req.session.lang);
+            })
+            .then(function(memo) {
+                req[memoparamid] = memoid;
+                req[memoparam] = memo;
                 next();
             })
+            .catch(function(error){
+                req[memoparamid] = memoid;
+                req[memoparam] = null;
+                req[memoparam + "error"] = error;
+                next();
+            });
         });
     }
 }
@@ -575,11 +627,14 @@ function proccessListType (self, wap) {
         if(!db) return resolve(wap);
 
         wo.contentlist = wo.contentlist.map(function(item) {
-            return db.get(item);
+            return db.get(item).then(resolve).catch((e) => {
+                console.log("BRAIN::ProccessListType: can not find the content => ", e);
+                return item;
+            });
         });
         Promise.all(wo.contentlist)
-        .then(function(waplist){
-            wo.contentlist = waplist.clean();
+        .then(function(contentlist) {
+            wo.contentlist = contentlist.clean();
             return wo;
         })
         .then(resolve)

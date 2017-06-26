@@ -86,8 +86,7 @@ CortexCentral.prototype.synapse = function() {
 CortexCentral.prototype.map = function() {
     var self = this;
     return function(req, res) {
-        var ref = req.params.ref;
-        var map = self.brain.map(ref);
+        var map = self.brain.map();
         return self.response(res, map, "sitemap", null, req.formatext || "json");
     };
 }
