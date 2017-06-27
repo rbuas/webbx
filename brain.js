@@ -632,6 +632,7 @@ function proccessListType (self, wap) {
                 return item;
             });
         });
+
         Promise.all(wo.contentlist)
         .then(function(contentlist) {
             wo.contentlist = contentlist.clean();
